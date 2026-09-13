@@ -1,0 +1,49 @@
+{
+  "annotations": { "list": [] },
+  "editable": false,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "title": "HTTP request rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(chatsalles_http_requests_total[5m]))", "legendFormat": "requests/s" }]
+    },
+    {
+      "title": "HTTP 5xx ratio",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{
+        "expr": "sum(rate(chatsalles_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(chatsalles_http_requests_total[5m])), 1)",
+        "legendFormat": "5xx ratio"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] }
+    },
+    {
+      "title": "HTTP 429 ratio",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [{
+        "expr": "sum(rate(chatsalles_http_requests_total{status=\"429\"}[5m])) / clamp_min(sum(rate(chatsalles_http_requests_total[5m])), 1)",
+        "legendFormat": "429 ratio"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] }
+    },
+    {
+      "title": "Webhook outcomes",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [{
+        "expr": "sum by (status) (rate(chatsalles_webhook_jobs_total[5m]))",
+        "legendFormat": "{{status}}"
+      }]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["chatsalles", "operations"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "ChatSalles Overview",
+  "uid": "chatsalles-overview",
+  "version": 1
+}

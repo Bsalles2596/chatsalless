@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - chatsalles-alertmanager:9093
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: chatsalles-api
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - chatsalles-api:3001
+          - chatsalles-api-2:3002
+
+  - job_name: chatsalles-redis
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - chatsalles-redis-exporter:9121

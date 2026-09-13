@@ -1,0 +1,149 @@
+services:
+  chatsalles-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: chatsalles
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - chatsalles-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chatsalles"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chatsalles-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chatsalles-redis-exporter:
+    image: oliver006/redis_exporter:v1.66.0
+    environment:
+      REDIS_ADDR: redis://chatsalles-redis:6379
+    depends_on:
+      chatsalles-redis:
+        condition: service_healthy
+
+  chatsalles-api:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@chatsalles-postgres:5432/chatsalles
+      REDIS_URL: redis://chatsalles-redis:6379
+      JWT_SECRET: change-this-secret-in-production-please
+      FRONTEND_URL: http://localhost:3000
+      PORT: 3001
+      LOG_FILE_PATH: /var/log/chatsalles/api.jsonl
+    depends_on:
+      chatsalles-postgres:
+        condition: service_healthy
+      chatsalles-redis:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    volumes:
+      - chatsalles-api-logs:/var/log/chatsalles
+    command: sh -c "node dist/src/db/migrate.js && node dist/src/main.js"
+
+  chatsalles-api-2:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@chatsalles-postgres:5432/chatsalles
+      REDIS_URL: redis://chatsalles-redis:6379
+      JWT_SECRET: change-this-secret-in-production-please
+      FRONTEND_URL: http://localhost:3000
+      PORT: 3002
+      LOG_FILE_PATH: /var/log/chatsalles/api.jsonl
+    depends_on:
+      chatsalles-postgres:
+        condition: service_healthy
+      chatsalles-redis:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+    volumes:
+      - chatsalles-api-2-logs:/var/log/chatsalles
+    command: node dist/src/main.js
+
+  chatsalles-worker:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@chatsalles-postgres:5432/chatsalles
+      REDIS_URL: redis://chatsalles-redis:6379
+      JWT_SECRET: change-this-secret-in-production-please
+      FRONTEND_URL: http://localhost:3000
+      LOG_FILE_PATH: /var/log/chatsalles/worker.jsonl
+    depends_on:
+      chatsalles-postgres:
+        condition: service_healthy
+      chatsalles-redis:
+        condition: service_healthy
+    command: node dist/src/modules/webhooks/worker-main.js
+    volumes:
+      - chatsalles-worker-logs:/var/log/chatsalles
+
+  chatsalles-prometheus:
+    image: prom/prometheus:v3.2.1
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - chatsalles-prometheus-data:/prometheus
+    depends_on:
+      chatsalles-api:
+        condition: service_started
+      chatsalles-api-2:
+        condition: service_started
+      chatsalles-redis-exporter:
+        condition: service_started
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+
+  chatsalles-alertmanager:
+    image: prom/alertmanager:v0.28.1
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - chatsalles-alertmanager-data:/alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+
+  chatsalles-grafana:
+    image: grafana/grafana:11.5.2
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-this-grafana-password}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - chatsalles-grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      chatsalles-prometheus:
+        condition: service_started
+    ports:
+      - "3003:3000"
+
+volumes:
+  chatsalles-postgres-data:
+  chatsalles-api-logs:
+  chatsalles-api-2-logs:
+  chatsalles-worker-logs:
+  chatsalles-prometheus-data:
+  chatsalles-grafana-data:
+  chatsalles-alertmanager-data:

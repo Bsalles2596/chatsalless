@@ -1,0 +1,64 @@
+:root { font-family: Inter, system-ui, sans-serif; color: #263238; background: #f4f7fb; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { min-height: 100vh; padding: 32px; }
+.login-card, .workspace { max-width: 1100px; margin: 0 auto; }
+.login-card { max-width: 420px; margin-top: 8vh; padding: 36px; background: white; border-radius: 16px; box-shadow: 0 10px 35px #1d35571f; }
+.brand { font-size: 28px; font-weight: 800; color: #243b53; }
+.brand span { color: #2f80ed; }
+.muted, small, .summary { color: #718096; }
+form, label { display: grid; gap: 8px; }
+form { gap: 18px; margin-top: 28px; }
+input, select, button { border: 1px solid #d9e2ec; border-radius: 8px; padding: 11px 12px; font: inherit; background: white; }
+button { border: 0; color: white; background: #2f80ed; cursor: pointer; font-weight: 600; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.secondary { color: #486581; background: #e9f0f7; }
+.secondary.active { color: #fff; background: #2f80ed; }
+header, .toolbar, .pagination, .header-actions, .contacts-toolbar, .modal-actions { display: flex; align-items: center; gap: 12px; }
+header { justify-content: space-between; margin-bottom: 28px; }
+.toolbar { flex-wrap: wrap; padding: 16px; background: white; border-radius: 12px; }
+.toolbar input { min-width: 220px; flex: 1; }
+.summary { margin: 20px 0 10px; }
+.conversation-list { display: grid; gap: 8px; }
+.conversation-layout { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(360px, 1.5fr); gap: 12px; align-items: start; }
+.conversation { display: flex; gap: 14px; padding: 18px; background: white; border-radius: 10px; cursor: pointer; }
+.conversation.selected { outline: 2px solid #2f80ed; }
+.avatar { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; color: white; background: #2f80ed; border-radius: 50%; font-weight: 700; }
+.conversation-body { min-width: 0; }
+.conversation-body p { margin: 5px 0; color: #52606d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conversation-meta, .label-list, .conversation-context { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.label { padding: 3px 7px; color: #245b8f; background: #e1efff; border-radius: 999px; font-size: 12px; }
+.unread-badge { padding: 2px 6px; color: #fff; background: #d64545; border-radius: 999px; font-size: 11px; }
+.empty { padding: 50px; text-align: center; color: #718096; background: white; border-radius: 10px; }
+.message-panel { min-height: 360px; display: grid; grid-template-rows: auto 1fr auto; background: white; border-radius: 10px; }
+.message-header { display: flex; justify-content: space-between; padding: 18px; border-bottom: 1px solid #edf2f7; }
+.message-subtitle { display: block; margin-top: 5px; }
+.conversation-context { padding: 10px 14px; color: #52606d; background: #f7fafc; font-size: 12px; }
+.compact { padding: 6px 8px; font-size: 12px; }
+.conversation-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #edf2f7; }
+.conversation-actions input { min-width: 150px; flex: 1; }
+.messages { display: grid; align-content: start; gap: 10px; padding: 18px; overflow: auto; max-height: 420px; }
+.message { max-width: 80%; padding: 10px 14px; background: #edf5ff; border-radius: 10px; }
+.message p { margin: 0 0 5px; }
+.message-actions { display: flex; gap: 6px; margin-top: 8px; }
+.composer { display: flex; gap: 8px; padding: 14px; border-top: 1px solid #edf2f7; }
+.composer input { flex: 1; }
+.file-button { padding: 10px; color: #486581; background: #e9f0f7; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.file-button input { display: none; }
+.private-toggle { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.private-toggle input { flex: 0; }
+.attachment-name { display: block; padding: 0 14px 10px; }
+.error { color: #c53030; }
+.notice { color: #276749; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 6px; padding: 8px 10px; }
+.pagination { justify-content: center; margin-top: 22px; }
+.contacts-toolbar { padding: 16px; background: white; border-radius: 12px; }
+.contacts-toolbar input { flex: 1; }
+.contact-list { display: grid; gap: 8px; margin-top: 16px; }
+.contact-card { display: flex; align-items: center; gap: 14px; padding: 16px; background: white; border-radius: 10px; }
+.contact-info { display: grid; gap: 5px; flex: 1; }
+.danger { color: #c53030; background: #fff5f5; }
+.modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: #102a4355; }
+.modal { width: min(100%, 440px); padding: 24px; margin: 0; background: white; border-radius: 12px; box-shadow: 0 15px 45px #102a4333; }
+.modal h2 { margin-top: 0; }
+.modal-actions { justify-content: flex-end; margin-top: 20px; }
+@media (max-width: 700px) { .shell { padding: 16px; } .toolbar > * { width: 100%; } .conversation-layout { grid-template-columns: 1fr; } }

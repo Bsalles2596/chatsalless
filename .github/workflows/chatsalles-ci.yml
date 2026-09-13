@@ -1,0 +1,84 @@
+name: ChatSalles CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-node
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: chatsalles
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d chatsalles"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/chatsalles
+      REDIS_URL: redis://127.0.0.1:6379
+      JWT_SECRET: ci-only-secret-change-me-please-32
+      WEBHOOK_ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+      WEBHOOK_TIMEOUT_MS: 100
+      WEBHOOK_MAX_ATTEMPTS: 2
+      BULLMQ_QUEUE_PREFIX: ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: backend-node/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Lint
+        run: pnpm lint
+      - name: Migrate database
+        run: pnpm db:migrate
+      - name: Run backend tests
+        run: pnpm test
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: docker compose -f docker-compose.chatsalles.yml config
+      - name: Start stack
+        run: docker compose -f docker-compose.chatsalles.yml up -d --build
+      - name: Check services
+        run: docker compose -f docker-compose.chatsalles.yml ps
+      - name: Run failover smoke
+        shell: pwsh
+        run: ./scripts/failover-smoke.ps1
+      - name: Collect logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.chatsalles.yml logs
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker-compose.chatsalles.yml down -v

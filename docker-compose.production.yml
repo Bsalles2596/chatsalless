@@ -1,0 +1,45 @@
+services:
+  chatsalles-postgres:
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+
+  chatsalles-redis:
+    ports: !reset []
+
+  chatsalles-api:
+    ports: !reset []
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@chatsalles-postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      WEBHOOK_ENCRYPTION_KEY: ${WEBHOOK_ENCRYPTION_KEY:?WEBHOOK_ENCRYPTION_KEY is required}
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
+      NODE_ENV: production
+
+  chatsalles-api-2:
+    ports: !reset []
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@chatsalles-postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      WEBHOOK_ENCRYPTION_KEY: ${WEBHOOK_ENCRYPTION_KEY:?WEBHOOK_ENCRYPTION_KEY is required}
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL is required}
+      NODE_ENV: production
+
+  chatsalles-worker:
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@chatsalles-postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      WEBHOOK_ENCRYPTION_KEY: ${WEBHOOK_ENCRYPTION_KEY:?WEBHOOK_ENCRYPTION_KEY is required}
+      NODE_ENV: production
+
+  chatsalles-prometheus:
+    ports: !reset []
+
+  chatsalles-grafana:
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+    ports: !reset []
