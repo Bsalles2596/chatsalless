@@ -36,12 +36,10 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/chatsalles
-      REDIS_URL: redis://127.0.0.1:6379
       JWT_SECRET: ci-only-secret-change-me-please-32
       WEBHOOK_ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
       WEBHOOK_TIMEOUT_MS: 100
       WEBHOOK_MAX_ATTEMPTS: 2
-      BULLMQ_QUEUE_PREFIX: ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -60,6 +58,14 @@ jobs:
         run: pnpm db:migrate
       - name: Run backend tests
         run: pnpm test
+      - name: Run Redis integration tests
+        env:
+          REDIS_URL: redis://127.0.0.1:6379
+          BULLMQ_QUEUE_PREFIX: ci
+        run: >-
+          pnpm exec vitest run --config vitest.config.ts
+          tests/webhooks.redis.integration.test.ts
+          tests/realtime.redis.integration.test.ts
 
   compose:
     runs-on: ubuntu-latest
