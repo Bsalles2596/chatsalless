@@ -638,14 +638,26 @@ O último trabalho concluído foi:
      suíte completa passou com 20 testes; 8 testes Redis foram pulados quando
      executados sem `REDIS_URL`.
 116. O job backend do workflow passou a executar lint entre build e migração.
+117. O CI GitHub Actions run #7 foi aprovado integralmente, incluindo build,
+     lint, migrações, testes padrão, testes Redis/BullMQ, Compose e failover
+     smoke.
+118. O rate limiter passou a usar uma conexão Redis operacional separada, com
+     timeout curto, preservando a conexão BullMQ para comandos bloqueantes.
+119. O smoke de failover passou a aplicar timeout explícito nas requisições
+     HTTP, evitando bloqueio indefinido quando o Redis é interrompido.
+120. O backend agora recusa inicialização em produção quando `JWT_SECRET`
+     ainda usa o valor padrão de desenvolvimento.
 
 Próxima tarefa ao retomar:
 
-1. Associar o repositório a um remoto GitHub e executar o workflow em GitHub
-   Actions, confirmando o job Compose com
-   failover smoke.
-2. Configurar secrets, TLS, reverse proxy e receiver real antes de produção.
-3. Planejar os módulos restantes necessários para paridade com Chatwoot.
+1. Configurar secrets reais fora do Git, TLS e reverse proxy no ambiente de
+   produção.
+2. Substituir o receiver de exemplo do Alertmanager por um endpoint autorizado
+   e testar uma notificação.
+3. Remover o seed de demonstração do processo de produção e trocar a senha do
+   administrador após o primeiro acesso.
+4. Planejar e implementar os módulos restantes necessários para paridade com
+   Chatwoot, priorizando canais e integrações.
 
 Smoke test operacional:
 

@@ -27,9 +27,13 @@ const envSchema = z.object({
 });
 
 const parsedEnv = envSchema.parse(process.env);
-if (parsedEnv.NODE_ENV === 'production'
-  && parsedEnv.WEBHOOK_ENCRYPTION_KEY === '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff') {
-  throw new Error('WEBHOOK_ENCRYPTION_KEY must be configured in production');
+if (parsedEnv.NODE_ENV === 'production') {
+  if (parsedEnv.JWT_SECRET === 'development-only-change-me-please-32') {
+    throw new Error('JWT_SECRET must be configured in production');
+  }
+  if (parsedEnv.WEBHOOK_ENCRYPTION_KEY === '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff') {
+    throw new Error('WEBHOOK_ENCRYPTION_KEY must be configured in production');
+  }
 }
 
 export const env = parsedEnv;
