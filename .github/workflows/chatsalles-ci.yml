@@ -69,6 +69,7 @@ jobs:
 
   compose:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose
@@ -79,6 +80,7 @@ jobs:
         run: docker compose -f docker-compose.chatsalles.yml ps
       - name: Run failover smoke
         shell: pwsh
+        timeout-minutes: 5
         run: ./scripts/failover-smoke.ps1
       - name: Collect logs on failure
         if: failure()
