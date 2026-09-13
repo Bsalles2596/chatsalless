@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { env } from '../../config/env.js';
-import { redisConnection } from '../../modules/webhooks/webhook.queue.js';
+import { redisOperationalConnection } from '../../modules/webhooks/webhook.queue.js';
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
@@ -10,12 +10,12 @@ export async function consumeRateLimit(
   windowMs = env.RATE_LIMIT_WINDOW_MS,
 ): Promise<{ allowed: boolean; retryAfter: number }> {
   const now = Date.now();
-  if (redisConnection) {
+  if (redisOperationalConnection) {
     try {
       const redisKey = `chatsalles:rate-limit:${key}`;
-      const count = await redisConnection.incr(redisKey);
-      if (count === 1) await redisConnection.pexpire(redisKey, windowMs);
-      const ttl = Math.max(1, await redisConnection.pttl(redisKey));
+      const count = await redisOperationalConnection.incr(redisKey);
+      if (count === 1) await redisOperationalConnection.pexpire(redisKey, windowMs);
+      const ttl = Math.max(1, await redisOperationalConnection.pttl(redisKey));
       return { allowed: count <= max, retryAfter: Math.ceil(ttl / 1000) };
     } catch (error) {
       process.emitWarning(`Redis rate limit unavailable; using local fallback: ${error instanceof Error ? error.message : 'unknown error'}`);

@@ -13,7 +13,7 @@ function Invoke-Compose {
 
 function Assert-Health {
   param([string]$Url)
-  $response = Invoke-WebRequest -UseBasicParsing -Uri $Url
+  $response = Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 10
   if ($response.StatusCode -ne 200) {
     throw "Health check failed: $Url returned HTTP $($response.StatusCode)"
   }
