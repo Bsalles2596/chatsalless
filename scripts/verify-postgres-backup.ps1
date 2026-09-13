@@ -11,7 +11,11 @@ if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
 
 $composeFile = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\docker-compose.chatsalles.yml'))
 $containerPath = '/tmp/chatsalles-verify.dump'
-& docker cp $BackupPath "chatsalles-chatsalles-postgres-1:$containerPath"
+$containerId = (& docker compose -f $composeFile ps -q chatsalles-postgres).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($containerId)) {
+  throw 'PostgreSQL container not found'
+}
+& docker cp $BackupPath "${containerId}:$containerPath"
 if ($LASTEXITCODE -ne 0) {
   throw 'Backup copy failed'
 }

@@ -37,6 +37,8 @@
 - [ ] Executar `.\scripts\backup-postgres.ps1` e armazenar o dump fora do host.
 - [ ] Validar o dump com `.\scripts\verify-postgres-backup.ps1 -BackupPath <arquivo>`.
 - [ ] Testar `.\scripts\restore-postgres.ps1 -BackupPath <arquivo> -ConfirmRestore` em ambiente separado.
+- [ ] Executar os scripts usando o mesmo projeto Compose da implantação para
+      localizar o container e as credenciais corretos.
 
 ## Observabilidade
 

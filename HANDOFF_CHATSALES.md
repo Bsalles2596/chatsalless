@@ -650,6 +650,10 @@ O último trabalho concluído foi:
 121. O override de produção passou a exigir `REDIS_PASSWORD`, ativar
      autenticação no Redis e propagar a URL autenticada para APIs, worker e
      Redis Exporter.
+122. Os scripts de backup, verificação e restauração PostgreSQL passaram a
+     descobrir o container pelo serviço Compose e usar `POSTGRES_USER` e
+     `POSTGRES_DB` definidos no próprio container, evitando dependência de
+     nomes fixos ou credenciais de desenvolvimento.
 
 Próxima tarefa ao retomar:
 
