@@ -647,6 +647,9 @@ O último trabalho concluído foi:
      HTTP, evitando bloqueio indefinido quando o Redis é interrompido.
 120. O backend agora recusa inicialização em produção quando `JWT_SECRET`
      ainda usa o valor padrão de desenvolvimento.
+121. O override de produção passou a exigir `REDIS_PASSWORD`, ativar
+     autenticação no Redis e propagar a URL autenticada para APIs, worker e
+     Redis Exporter.
 
 Próxima tarefa ao retomar:
 

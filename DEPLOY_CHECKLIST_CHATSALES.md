@@ -5,6 +5,7 @@
 - [ ] Definir `JWT_SECRET` forte e exclusivo por ambiente.
 - [ ] Definir `WEBHOOK_ENCRYPTION_KEY` com 64 caracteres hexadecimais.
 - [ ] Remover senhas padrão de PostgreSQL e Redis.
+- [ ] Definir `REDIS_PASSWORD` forte e confirmar que a URL Redis usa autenticação.
 - [ ] Fornecer secrets por Docker Secrets, Kubernetes Secrets ou secret manager.
 - [ ] Confirmar `NODE_ENV=production`.
 - [ ] Confirmar `FRONTEND_URL` com origem exata, sem wildcard.
