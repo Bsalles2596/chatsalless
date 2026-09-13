@@ -7,7 +7,12 @@ const resourceInput = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).optional(),
 });
-const inboxInput = resourceInput.pick({ name: true });
+const channelType = z.enum(['api', 'web_widget', 'email', 'whatsapp', 'telegram', 'sms']);
+const inboxInput = z.object({
+  name: z.string().trim().min(1).max(120),
+  channelType: channelType.default('api'),
+});
+const inboxUpdateInput = inboxInput.partial();
 
 export async function operationsRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Params: { accountId: string } }>(
@@ -29,13 +34,13 @@ export async function operationsRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: authenticate },
     async (request, reply) => {
       const accountId = accountFromRequest(request);
-      const parsed = resourceInput.safeParse(request.body);
+      const parsed = inboxInput.safeParse(request.body);
       if (!parsed.success) return reply.badRequest(parsed.error.issues[0].message);
       if (!pool) return reply.serviceUnavailable('Database is required for inboxes');
       const result = await pool.query(
-        `INSERT INTO inboxes (account_id, name)
-         VALUES ($1, $2) RETURNING id, name, channel_type AS "channelType", created_at`,
-        [accountId, parsed.data.name],
+        `INSERT INTO inboxes (account_id, name, channel_type)
+         VALUES ($1, $2, $3) RETURNING id, name, channel_type AS "channelType", created_at`,
+        [accountId, parsed.data.name, parsed.data.channelType],
       );
       return reply.code(201).send(result.rows[0]);
     },
@@ -46,18 +51,18 @@ export async function operationsRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: authenticate },
     async (request, reply) => {
       const accountId = accountFromRequest(request);
-      const parsed = inboxInput.partial().safeParse(request.body);
+      const parsed = inboxUpdateInput.safeParse(request.body);
       if (!parsed.success) return reply.badRequest(parsed.error.issues[0].message);
       if (!pool) return reply.serviceUnavailable('Database is required for inboxes');
-      if (!parsed.data.name) {
+      if (!parsed.data.name && !parsed.data.channelType) {
         return reply.badRequest('At least one inbox field is required');
       }
       const result = await pool.query(
         `UPDATE inboxes
-         SET name = COALESCE($3, name)
+         SET name = COALESCE($3, name), channel_type = COALESCE($4, channel_type)
          WHERE id = $1 AND account_id = $2
          RETURNING id, name, channel_type AS "channelType", created_at`,
-        [request.params.inboxId, accountId, parsed.data.name ?? null],
+        [request.params.inboxId, accountId, parsed.data.name ?? null, parsed.data.channelType ?? null],
       );
       return result.rows[0] ? result.rows[0] : reply.notFound('Inbox not found');
     },

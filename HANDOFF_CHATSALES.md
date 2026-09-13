@@ -659,6 +659,10 @@ O último trabalho concluído foi:
 124. O módulo operacional passou a permitir atualização e exclusão de inboxes
      e equipes com isolamento por `account_id`; as relações existentes usam
      as regras de integridade PostgreSQL para preservar conversas e membros.
+125. A administração de inboxes passou a validar e persistir tipos de canal
+     (`api`, `web_widget`, `email`, `whatsapp`, `telegram` e `sms`) na criação
+     e atualização. Credenciais específicas de provedores continuam fora
+     desta camada até a implementação de cada integração.
 
 Próxima tarefa ao retomar:
 
