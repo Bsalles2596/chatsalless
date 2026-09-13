@@ -654,6 +654,11 @@ O último trabalho concluído foi:
      descobrir o container pelo serviço Compose e usar `POSTGRES_USER` e
      `POSTGRES_DB` definidos no próprio container, evitando dependência de
      nomes fixos ou credenciais de desenvolvimento.
+123. O CI GitHub Actions run #10 foi aprovado após a portabilidade dos scripts
+     de backup.
+124. O módulo operacional passou a permitir atualização e exclusão de inboxes
+     e equipes com isolamento por `account_id`; as relações existentes usam
+     as regras de integridade PostgreSQL para preservar conversas e membros.
 
 Próxima tarefa ao retomar:
 
