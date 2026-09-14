@@ -5,6 +5,7 @@ import { ContactForm } from './components/ContactForm';
 import { MessagePanel } from './components/MessagePanel';
 import { AutomationAdminView } from './views/AutomationAdminView';
 import { WebhookAdminView } from './views/WebhookAdminView';
+import { OperationsAdminView } from './views/OperationsAdminView';
 
 describe('ChatSalles standalone components', () => {
   it('emits the selected conversation', async () => {
@@ -93,5 +94,25 @@ describe('ChatSalles standalone components', () => {
 
     expect(wrapper.emitted('update:status-filter')?.[0]).toEqual(['failed']);
     expect(wrapper.emitted('retry')?.[0][0].id).toBe('delivery-1');
+  });
+
+  it('emits inbox and team administration actions', async () => {
+    const wrapper = mount(OperationsAdminView, {
+      props: {
+        inboxes: [{ id: 'inbox-1', name: 'Suporte', channelType: 'web_widget' }],
+        teams: [{ id: 'team-1', name: 'Comercial' }],
+        inboxForm: { name: '', channelType: 'api' },
+        teamForm: { name: '', description: '' },
+      },
+    });
+
+    await wrapper.find('.admin-form input').setValue('WhatsApp');
+    await wrapper.find('.admin-form select').setValue('whatsapp');
+    await wrapper.findAll('.admin-form')[0].trigger('submit.prevent');
+    await wrapper.findAll('.admin-list button')[0].trigger('click');
+
+    expect(wrapper.emitted('update:inbox-form')?.at(-1)?.[0]).toMatchObject({ channelType: 'whatsapp' });
+    expect(wrapper.emitted('create-inbox')).toHaveLength(1);
+    expect(wrapper.emitted('update-inbox')?.[0][0].id).toBe('inbox-1');
   });
 });

@@ -10,6 +10,7 @@ import { MessagePanel } from './components/MessagePanel';
 import { connectRealtime } from './realtime';
 import { AutomationAdminView } from './views/AutomationAdminView';
 import { WebhookAdminView } from './views/WebhookAdminView';
+import { OperationsAdminView } from './views/OperationsAdminView';
 
 const appTemplate = `
     <main class="shell">
@@ -23,6 +24,7 @@ const appTemplate = `
             <button class="secondary" :class="{ active: view === 'contacts' }" @click="view = 'contacts'">Contatos</button>
             <button class="secondary" :class="{ active: view === 'automations' }" @click="openAdmin('automations')">Automações</button>
             <button class="secondary" :class="{ active: view === 'webhooks' }" @click="openAdmin('webhooks')">Webhooks</button>
+            <button class="secondary" :class="{ active: view === 'operations' }" @click="openAdmin('operations')">Operações</button>
             <button class="secondary" @click="logout">Sair</button>
           </div>
         </header>
@@ -75,12 +77,16 @@ const appTemplate = `
           @reprocess-dead-letter="reprocessDeadLetter"
           @page="webhookPage = $event" @update:event-filter="webhookEventFilter = $event"
           @update:status-filter="webhookStatusFilter = $event" @update:form="webhookForm = $event" />
+        <OperationsAdminView v-if="view === 'operations'" :inboxes="inboxes" :teams="teams" :inbox-form="inboxForm" :team-form="teamForm" :loading="adminLoading"
+          @refresh="loadOperations" @create-inbox="createInbox" @update-inbox="editInbox" @delete-inbox="deleteInbox"
+          @create-team="createTeam" @update-team="editTeam" @delete-team="deleteTeam"
+          @update:inbox-form="inboxForm = $event" @update:team-form="teamForm = $event" />
       </section>
     </main>
 `;
 
 export const App = {
-  components: { LoginView, ContactsView, ConversationsView, AutomationAdminView, WebhookAdminView, ContactForm, ConversationList, MessagePanel },
+  components: { LoginView, ContactsView, ConversationsView, AutomationAdminView, WebhookAdminView, OperationsAdminView, ContactForm, ConversationList, MessagePanel },
   data() {
     return {
       email: 'admin@chatsalles.com.br',
@@ -118,6 +124,8 @@ export const App = {
       agents: [],
       teams: [],
       inboxes: [],
+      inboxForm: { name: '', channelType: 'api' },
+      teamForm: { name: '', description: '' },
       realtimeSocket: null,
       automationRules: [],
       automationExecutions: [],
@@ -208,8 +216,71 @@ export const App = {
       if (this.adminRefreshTimer) window.clearInterval(this.adminRefreshTimer);
       this.adminRefreshTimer = window.setInterval(() => {
         if (this.view === 'webhooks') void this.loadAdminData();
+        if (this.view === 'operations') void this.loadOperations();
       }, 10000);
-      await this.loadAdminData();
+      if (view === 'operations') await this.loadOperations();
+      else await this.loadAdminData();
+    },
+    async loadOperations() {
+      if (!this.accountId) return;
+      this.adminLoading = true;
+      try {
+        const [inboxes, teams] = await Promise.all([
+          request(`/api/v1/accounts/${this.accountId}/inboxes`),
+          request(`/api/v1/accounts/${this.accountId}/teams`),
+        ]);
+        this.inboxes = inboxes.data || inboxes.payload || inboxes;
+        this.teams = teams.data || teams.payload || teams;
+      } catch (error) {
+        this.error = error.message;
+      } finally {
+        this.adminLoading = false;
+      }
+    },
+    async createInbox() {
+      await request(`/api/v1/accounts/${this.accountId}/inboxes`, { method: 'POST', body: JSON.stringify(this.inboxForm) });
+      this.inboxForm = { name: '', channelType: 'api' };
+      this.notice = 'Inbox criada.';
+      await this.loadOperations();
+    },
+    async editInbox(inbox) {
+      const name = window.prompt('Nome da inbox:', inbox.name);
+      if (!name?.trim()) return;
+      const channelType = window.prompt('Tipo do canal:', inbox.channelType || 'api');
+      if (!channelType?.trim()) return;
+      await request(`/api/v1/accounts/${this.accountId}/inboxes/${inbox.id}`, {
+        method: 'PATCH', body: JSON.stringify({ name: name.trim(), channelType: channelType.trim() }),
+      });
+      this.notice = 'Inbox atualizada.';
+      await this.loadOperations();
+    },
+    async deleteInbox(inbox) {
+      if (!window.confirm(`Excluir a inbox ${inbox.name}?`)) return;
+      await request(`/api/v1/accounts/${this.accountId}/inboxes/${inbox.id}`, { method: 'DELETE' });
+      this.notice = 'Inbox excluída.';
+      await this.loadOperations();
+    },
+    async createTeam() {
+      await request(`/api/v1/accounts/${this.accountId}/teams`, { method: 'POST', body: JSON.stringify(this.teamForm) });
+      this.teamForm = { name: '', description: '' };
+      this.notice = 'Equipe criada.';
+      await this.loadOperations();
+    },
+    async editTeam(team) {
+      const name = window.prompt('Nome da equipe:', team.name);
+      if (!name?.trim()) return;
+      const description = window.prompt('Descrição da equipe:', team.description || '');
+      await request(`/api/v1/accounts/${this.accountId}/teams/${team.id}`, {
+        method: 'PATCH', body: JSON.stringify({ name: name.trim(), description }),
+      });
+      this.notice = 'Equipe atualizada.';
+      await this.loadOperations();
+    },
+    async deleteTeam(team) {
+      if (!window.confirm(`Excluir a equipe ${team.name}?`)) return;
+      await request(`/api/v1/accounts/${this.accountId}/teams/${team.id}`, { method: 'DELETE' });
+      this.notice = 'Equipe excluída.';
+      await this.loadOperations();
     },
     async loadAdminData() {
       if (!this.accountId) return;

@@ -232,13 +232,11 @@ quando ocorre:
 
 Filtros `updated_within` e ordenação `updated_at` agora usam esse campo.
 
-### Ações operacionais restantes
+### Ações operacionais
 
-Ainda devem ser adicionados ou refinados:
-
-- alterar inbox pela SPA;
-- mensagens de sucesso/erro mais claras;
-- cobertura de edição/exclusão de contatos e criação de conversa.
+A SPA já permite alterar inbox de uma conversa. A administração de inboxes,
+tipos de canal e equipes está sendo integrada na área Operações; permanecem
+testes de integração backend e refinamentos visuais.
 
 ### Organização do frontend
 
@@ -282,41 +280,27 @@ Adicionar cobertura para:
 
 ### Tempo real
 
-Depois de estabilizar HTTP:
+Socket.IO, Redis Adapter, autenticação, reconexão e eventos de mensagens,
+status, prioridade, atribuição, inbox e leitura já estão implementados.
+Devem permanecer testes de regressão e revisão de isolamento por tenant.
 
-- adicionar WebSocket ou Socket.IO;
-- emitir eventos de nova mensagem;
-- atualizar status e atribuição em tempo real;
-- atualizar contadores de não lidas;
-- adicionar reconexão.
+### Produção (última etapa)
 
-### Produção
-
-Antes de produção:
-
-- validar S3 ou MinIO real;
-- usar bucket privado;
-- gerar URLs assinadas;
-- configurar limites por tenant;
-- adicionar limpeza de anexos;
-- configurar Redis/BullMQ;
-- implementar retry assíncrono real;
-- adicionar rate limiting;
-- revisar permissões por função;
-- configurar observabilidade;
-- remover credenciais de desenvolvimento;
-- criar deploy do backend e frontend.
+VPS, domínio, TLS, reverse proxy e secrets reais só serão configurados depois
+da conclusão e validação de todo o frontend e backend. Até lá, somente os
+modelos e validações locais/CI devem evoluir.
 
 ## Ordem recomendada para continuar
 
-1. Adicionar testes de integração específicos para payload enriquecido e `updated_at`.
-2. Testar Socket.IO com dois clientes autenticados e validar isolamento por
-   tenant.
-3. Implementar Redis/BullMQ para eventos, automações e retry assíncrono.
-6. Validar storage S3/MinIO real.
-7. Migrar os módulos restantes do frontend.
-8. Fazer revisão de segurança, performance e autorização.
-9. Preparar build/deploy independente sem Ruby.
+1. Atualizar testes backend e frontend de inboxes, equipes e tipos de canal.
+2. Completar a administração desses recursos na SPA.
+3. Criar configuração segura e criptografada para provedores.
+4. Implementar primeiro o Web Widget.
+5. Implementar e-mail ou WhatsApp conforme a prioridade escolhida.
+6. Completar permissões, notificações e relatórios.
+7. Fazer revisão final de segurança, performance e autorização.
+8. Concluir todo o frontend e backend e validar a paridade definida.
+9. Somente então preparar VPS, domínio, TLS, reverse proxy e secrets reais.
 
 ## Comandos de validação
 
@@ -340,9 +324,9 @@ pnpm exec vite build
 - `pnpm start:dev` continua sendo o fluxo antigo dependente de Foreman/Rails.
 - O backend Node atual usa PostgreSQL real quando `DATABASE_URL` está definido.
 - O seed é seguro para execução repetida, mas novos dados manuais podem permanecer.
-- O lint do backend ainda não está configurado porque ESLint/configuração não
-  estão declarados no pacote `backend-node`.
-- Redis/BullMQ e S3 real ainda não foram configurados.
+- ESLint e sua configuração TypeScript estão ativos no pacote `backend-node`.
+- Redis/BullMQ estão configurados e validados; integrações externas de canais e
+  S3/MinIO real continuam pendentes.
 
 ## Ponto exato de retomada
 
