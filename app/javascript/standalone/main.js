@@ -77,10 +77,12 @@ const appTemplate = `
           @reprocess-dead-letter="reprocessDeadLetter"
           @page="webhookPage = $event" @update:event-filter="webhookEventFilter = $event"
           @update:status-filter="webhookStatusFilter = $event" @update:form="webhookForm = $event" />
-        <OperationsAdminView v-if="view === 'operations'" :inboxes="inboxes" :teams="teams" :inbox-form="inboxForm" :team-form="teamForm" :loading="adminLoading"
+        <OperationsAdminView v-if="view === 'operations'" :inboxes="inboxes" :teams="teams" :inbox-form="inboxForm" :team-form="teamForm"
+          :provider-config="providerConfig" :provider-form="providerForm" :loading="adminLoading"
           @refresh="loadOperations" @create-inbox="createInbox" @update-inbox="editInbox" @delete-inbox="deleteInbox"
           @create-team="createTeam" @update-team="editTeam" @delete-team="deleteTeam"
-          @update:inbox-form="inboxForm = $event" @update:team-form="teamForm = $event" />
+          @configure-provider="configureProvider" @rotate-provider="rotateProvider" @select-inbox="loadProviderConfig"
+          @update:inbox-form="inboxForm = $event" @update:team-form="teamForm = $event" @update:provider-form="providerForm = $event" />
       </section>
     </main>
 `;
@@ -126,6 +128,8 @@ export const App = {
       inboxes: [],
       inboxForm: { name: '', channelType: 'api' },
       teamForm: { name: '', description: '' },
+      providerConfig: null,
+      providerForm: { inboxId: '', provider: 'api', enabled: false, credentials: '', publicConfig: {} },
       realtimeSocket: null,
       automationRules: [],
       automationExecutions: [],
@@ -231,11 +235,54 @@ export const App = {
         ]);
         this.inboxes = inboxes.data || inboxes.payload || inboxes;
         this.teams = teams.data || teams.payload || teams;
+        if (this.providerForm.inboxId) await this.loadProviderConfig(this.providerForm.inboxId);
       } catch (error) {
         this.error = error.message;
       } finally {
         this.adminLoading = false;
       }
+    },
+    async loadProviderConfig(inboxId) {
+      const inbox = this.inboxes.find(item => item.id === inboxId);
+      if (!inbox) return;
+      this.providerForm = { ...this.providerForm, inboxId, provider: inbox.channelType, credentials: '' };
+      this.providerConfig = await request(`/api/v1/accounts/${this.accountId}/inboxes/${inboxId}/provider`);
+    },
+    async configureProvider() {
+      let credentials;
+      try {
+        credentials = JSON.parse(this.providerForm.credentials || '{}');
+      } catch {
+        this.error = 'Credenciais devem ser um JSON válido.';
+        return;
+      }
+      await request(`/api/v1/accounts/${this.accountId}/inboxes/${this.providerForm.inboxId}/provider`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          provider: this.providerForm.provider,
+          enabled: this.providerForm.enabled,
+          credentials,
+          publicConfig: this.providerForm.publicConfig,
+        }),
+      });
+      this.providerForm = { ...this.providerForm, credentials: '' };
+      this.notice = 'Provedor configurado sem expor as credenciais.';
+      await this.loadProviderConfig(this.providerForm.inboxId);
+    },
+    async rotateProvider() {
+      let credentials;
+      try {
+        credentials = JSON.parse(this.providerForm.credentials || '{}');
+      } catch {
+        this.error = 'Credenciais devem ser um JSON válido.';
+        return;
+      }
+      await request(`/api/v1/accounts/${this.accountId}/inboxes/${this.providerForm.inboxId}/provider/rotate`, {
+        method: 'POST', body: JSON.stringify(credentials),
+      });
+      this.providerForm = { ...this.providerForm, credentials: '' };
+      this.notice = 'Credenciais rotacionadas.';
+      await this.loadProviderConfig(this.providerForm.inboxId);
     },
     async createInbox() {
       await request(`/api/v1/accounts/${this.accountId}/inboxes`, { method: 'POST', body: JSON.stringify(this.inboxForm) });

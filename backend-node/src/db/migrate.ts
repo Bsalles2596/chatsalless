@@ -38,6 +38,20 @@ await pool.query(`
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
   CREATE INDEX IF NOT EXISTS inboxes_account_idx ON inboxes (account_id);
+  CREATE TABLE IF NOT EXISTS inbox_provider_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    inbox_id UUID NOT NULL REFERENCES inboxes(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    public_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    credentials_ciphertext TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (account_id, inbox_id)
+  );
+  CREATE INDEX IF NOT EXISTS inbox_provider_configs_account_idx
+    ON inbox_provider_configs (account_id);
   CREATE TABLE IF NOT EXISTS teams (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,

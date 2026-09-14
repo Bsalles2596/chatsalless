@@ -4,9 +4,11 @@ export const OperationsAdminView = {
     teams: { type: Array, required: true },
     inboxForm: { type: Object, required: true },
     teamForm: { type: Object, required: true },
+    providerConfig: { type: Object, default: null },
+    providerForm: { type: Object, required: true },
     loading: Boolean,
   },
-  emits: ['refresh', 'create-inbox', 'update-inbox', 'delete-inbox', 'create-team', 'update-team', 'delete-team', 'update:inbox-form', 'update:team-form'],
+  emits: ['refresh', 'create-inbox', 'update-inbox', 'delete-inbox', 'create-team', 'update-team', 'delete-team', 'configure-provider', 'rotate-provider', 'select-inbox', 'update:inbox-form', 'update:team-form', 'update:provider-form'],
   template: `
     <section class="admin-panel">
       <div class="admin-heading"><div><h2>Operações</h2><p>Inboxes, canais e equipes.</p></div><button @click="$emit('refresh')">Atualizar</button></div>
@@ -31,6 +33,7 @@ export const OperationsAdminView = {
       <ul class="admin-list">
         <li v-for="inbox in inboxes" :key="inbox.id">
           <span><strong>{{ inbox.name }}</strong> · {{ inbox.channelType }}</span>
+          <button class="secondary" @click="$emit('select-inbox', inbox.id)">Provedor</button>
           <button class="secondary" @click="$emit('update-inbox', inbox)">Editar</button>
           <button class="danger" @click="$emit('delete-inbox', inbox)">Excluir</button>
         </li>
@@ -43,6 +46,15 @@ export const OperationsAdminView = {
           <button class="danger" @click="$emit('delete-team', team)">Excluir</button>
         </li>
       </ul>
+      <form v-if="providerForm.inboxId" class="admin-form" @submit.prevent="$emit('configure-provider')">
+        <h3>Configuração do provedor</h3>
+        <p v-if="providerConfig">Inbox selecionada: {{ providerConfig.provider }} · {{ providerConfig.enabled ? 'ativa' : 'inativa' }} · credenciais configuradas</p>
+        <label>Credenciais (JSON)<textarea :value="providerForm.credentials" placeholder='{"token":"..."}' @input="$emit('update:provider-form', { ...providerForm, credentials: $event.target.value })"></textarea></label>
+        <label><input type="checkbox" :checked="providerForm.enabled" @change="$emit('update:provider-form', { ...providerForm, enabled: $event.target.checked })" /> Ativa</label>
+        <button :disabled="loading">Salvar configuração</button>
+        <button v-if="providerConfig" type="button" class="secondary" @click="$emit('rotate-provider')">Rotacionar credenciais</button>
+      </form>
+      <p v-else class="empty">Selecione uma inbox para configurar o provedor.</p>
     </section>
   `,
 };

@@ -103,6 +103,8 @@ describe('ChatSalles standalone components', () => {
         teams: [{ id: 'team-1', name: 'Comercial' }],
         inboxForm: { name: '', channelType: 'api' },
         teamForm: { name: '', description: '' },
+        providerConfig: null,
+        providerForm: { inboxId: 'inbox-1', provider: 'web_widget', enabled: false, credentials: '' },
       },
     });
 
@@ -113,6 +115,9 @@ describe('ChatSalles standalone components', () => {
 
     expect(wrapper.emitted('update:inbox-form')?.at(-1)?.[0]).toMatchObject({ channelType: 'whatsapp' });
     expect(wrapper.emitted('create-inbox')).toHaveLength(1);
-    expect(wrapper.emitted('update-inbox')?.[0][0].id).toBe('inbox-1');
+    expect(wrapper.emitted('select-inbox')?.[0]).toEqual(['inbox-1']);
+    await wrapper.find('textarea').setValue('{"token":"test"}');
+    await wrapper.findAll('.admin-form').at(-1).trigger('submit.prevent');
+    expect(wrapper.emitted('configure-provider')).toHaveLength(1);
   });
 });

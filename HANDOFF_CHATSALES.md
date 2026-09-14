@@ -650,6 +650,14 @@ O último trabalho concluído foi:
 126. Foram adicionados testes backend de operações cobrindo criação,
      atualização, exclusão, tipos de canal inválidos e isolamento de inboxes
      e equipes entre contas.
+127. Foi criada a configuração segura de provedores por inbox, com validação
+     de compatibilidade com o canal, credenciais criptografadas, rotação,
+     status ativo/inativo, resposta sem segredos e isolamento administrativo
+     por conta. A camada ainda não conecta provedores externos.
+128. A SPA passou a administrar a configuração do provedor da inbox, com
+     seleção da inbox, ativação, envio de credenciais em JSON e rotação sem
+     exibir valores armazenados. A suíte frontend passou com 14 testes e o
+     build Vite foi aprovado.
 
 Próxima tarefa ao retomar:
 

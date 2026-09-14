@@ -11,6 +11,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { conversationsRoutes } from './modules/conversations/conversations.routes.js';
 import fastifyJwt from '@fastify/jwt';
 import { operationsRoutes } from './modules/operations/operations.routes.js';
+import { providerConfigRoutes } from './modules/operations/provider-config.routes.js';
 import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
 import { rateLimit } from './shared/http/rate-limit.js';
 import { recordRequest, renderPrometheusMetrics } from './shared/observability/metrics.js';
@@ -61,6 +62,7 @@ export function buildApp() {
   app.register(contactsRoutes);
   app.register(conversationsRoutes);
   app.register(operationsRoutes);
+  app.register(providerConfigRoutes);
   app.register(automationsRoutes);
   app.register(webhooksRoutes);
 
