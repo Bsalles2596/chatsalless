@@ -647,6 +647,9 @@ O último trabalho concluído foi:
      (`api`, `web_widget`, `email`, `whatsapp`, `telegram` e `sms`) na criação
      e atualização. Credenciais específicas de provedores continuam fora
      desta camada até a implementação de cada integração.
+126. Foram adicionados testes backend de operações cobrindo criação,
+     atualização, exclusão, tipos de canal inválidos e isolamento de inboxes
+     e equipes entre contas.
 
 Próxima tarefa ao retomar:
 
